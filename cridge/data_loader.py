@@ -54,5 +54,5 @@ class Coleridger:
         id_list = list(self.text_dict.keys())
         sample_id = list(np.random.choice(id_list, 1))[0]
         
-        return self.text_dict[sample_id] 
+        return sample_id, self.text_dict[sample_id]
        
