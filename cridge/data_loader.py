@@ -23,25 +23,24 @@ class Coleridger:
         else:
             self.text_df = None
     
-    def sample_text_ids(self, n=10):
+    def random_text_ids(self, n=10):
         n = min(len(self.text_ids), n)        
         self.sample_ids = list(np.random.choice(self.text_ids, n))
         
-    def load_text_from_id_list(self, id_list="sample", n=10):
+    def load_text_from_id_list(self, id_list="random", n=10):
         
         # set id_list 
-        if id_list == "sample":
+        if id_list == "random":
             if self.sample_ids is None:
-                self.sample_text_ids(n)
-            id_list = self.sample_ids           
+                self.random_text_ids(n)         
         elif id_list == "full":
-            id_list = self.text_ids       
+            self.sample_ids  = self.text_ids       
         else:
-            id_list = id_list
+            self.sample_ids  = id_list
             
         # load each text file
         text_dict = {}
-        for text_id in id_list:
+        for text_id in self.sample_ids:
             with open(os.path.join(self.text_dir, text_id+".json")) as rf:
                 text_dict[text_id] = json.load(rf)
         self.text_dict = text_dict
