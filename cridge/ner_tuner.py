@@ -13,6 +13,24 @@ def __span_overlap__(span1, span2):
     else:
         return False
 
+def __unique_spans__(labels, text):
+    """
+    """
+    label_locs = []
+    for l in labels:
+        for m in re.finditer(l, text):
+            ll_new = m.span()
+            add_new = True
+            for i, ll in enumerate(label_locs):
+                if __span_overlap__(ll_new, ll):
+                    add_new = False
+                    if (ll_new[1] - ll_new[0]) > (ll[1] - ll[0]):
+                        label_locs[i] = ll_new
+            if add_new:
+                label_locs.append(ll_new)
+
+    return label_locs
+
 class NER_tuner(Coleridger):
     """
     """
@@ -38,8 +56,7 @@ class NER_tuner(Coleridger):
                 if any([s in sec["text"] for s in labels]):
                     doc = self.nlp(sec["text"])
                     ent_dict = {"entities": []}
-                    label_locs = [m.span() for l in labels for 
-                                  m in re.finditer(l, sec["text"])]
+                    label_locs = __unique_spans__(labels, sec["text"])
                     for ll in label_locs:
                         ent_dict["entities"].append((ll[0], ll[1], 
                                                      "DATASET"))
