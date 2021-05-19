@@ -5,6 +5,14 @@ import re
 import spacy
 from cridge.data_loader import Coleridger
 
+def __span_overlap__(span1, span2):
+    """
+    """
+    if (span1[0] <= span2[1]) & (span2[0] <= span1[1]):
+        return True
+    else:
+        return False
+
 class NER_tuner(Coleridger):
     """
     """
@@ -38,7 +46,7 @@ class NER_tuner(Coleridger):
                     for e in doc.ents:
                         add_example = True
                         for ll in label_locs:
-                            if e.start_char < ll[1] & e.end_char > ll[0]:
+                            if __span_overlap__((e.start_char, e.end_char), ll):
                                 add_example = False
                         if add_example:
                             ent_dict["entities"].append((e.start_char, 
