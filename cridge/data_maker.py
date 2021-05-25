@@ -39,45 +39,46 @@ def refine_texts(label_df, raw_texts, sent_spans, nlp,
                     for l in lab_rgx]):
                 
                 # process with spacy and check if sentenced
-                doc = nlp(sec["text"])
-                if doc.is_sentenced:
-                    
-                    # collect sentence groups
-                    sent_tups = []
-                    all_sents = list(doc.sents)
-                    
-                    # iterate through all sentences
-                    for i, sent in enumerate(doc.sents):
+                if len(sec["text"]) < 1000000:
+                    doc = nlp(sec["text"])
+                    if doc.is_sentenced:
                         
-                        # pick sentence with the label
-                        if any([bool(re.search(l, " "+sent.text+" ")) 
-                                for l in lab_rgx]):
+                        # collect sentence groups
+                        sent_tups = []
+                        all_sents = list(doc.sents)
+                        
+                        # iterate through all sentences
+                        for i, sent in enumerate(doc.sents):
                             
-                            # get sentence indices surrounding label
-                            for span in sent_spans:
-                                sent_tups.append((i, 
-                                                  max((i - span[0]), 0), 
-                                                  min((i + span[1] + 1), 
-                                                      len(all_sents))))
+                            # pick sentence with the label
+                            if any([bool(re.search(l, " "+sent.text+" ")) 
+                                    for l in lab_rgx]):
                                 
-                    # compile sentence index dataframe
-                    sent_df = pd.DataFrame(sent_tups, 
-                                           columns=["sent_idx", 
-                                                    "min_idx", 
-                                                    "max_idx"])
-                    
-                    # compile texts from selected sentences
-                    if sent_df.shape[0] > 0:
-                        train_texts = sent_df.apply(
-                            lambda x: __compile_from_sent_list__(
-                                start=x["min_idx"], 
-                                end=x["max_idx"],
-                                sent_list=all_sents), axis=1).tolist()
-                    else:
-                        train_texts = []
-                    
-                    # add to train data for current id
-                    train_data += train_texts
+                                # get sentence indices surrounding label
+                                for span in sent_spans:
+                                    sent_tups.append((i, 
+                                                    max((i - span[0]), 0), 
+                                                    min((i + span[1] + 1), 
+                                                        len(all_sents))))
+                                    
+                        # compile sentence index dataframe
+                        sent_df = pd.DataFrame(sent_tups, 
+                                            columns=["sent_idx", 
+                                                        "min_idx", 
+                                                        "max_idx"])
+                        
+                        # compile texts from selected sentences
+                        if sent_df.shape[0] > 0:
+                            train_texts = sent_df.apply(
+                                lambda x: __compile_from_sent_list__(
+                                    start=x["min_idx"], 
+                                    end=x["max_idx"],
+                                    sent_list=all_sents), axis=1).tolist()
+                        else:
+                            train_texts = []
+                        
+                        # add to train data for current id
+                        train_data += train_texts
                     
         train_dict[pub_id] = train_data
         

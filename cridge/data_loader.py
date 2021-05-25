@@ -25,7 +25,8 @@ class Coleridger:
     
     def random_text_ids(self, n=10):
         n = min(len(self.text_ids), n)        
-        self.sample_ids = list(np.random.choice(self.text_ids, n))
+        self.sample_ids = list(np.random.choice(self.text_ids, n, 
+                                                replace=False))
         
     def load_text_from_id_list(self, id_list="random", n=10):
         
