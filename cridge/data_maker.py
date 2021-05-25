@@ -1,7 +1,9 @@
 
 ## Functions for extracting text excerpts for training ##
 
+import re
 import pandas as pd
+from tqdm import tqdm
 
 def __compile_from_sent_list__(start, end, sent_list):
     return " ".join([s.text for s in sent_list[start:end]])
@@ -18,7 +20,7 @@ def refine_texts(label_df, raw_texts, sent_spans, nlp,
     train_dict = {}
     
     # iterate through all ids
-    for pub_id in id_list:
+    for pub_id in tqdm(id_list):
         
         # get raw text and dataset labels
         pub_text = raw_texts[pub_id]
@@ -28,8 +30,13 @@ def refine_texts(label_df, raw_texts, sent_spans, nlp,
         train_data = []
         for sec in pub_text:
             
+            # set label regex
+            lab_rgx = ["[\s|\n|(]" + l + "[\s|,|.|?|!|:|;|)]" 
+                       for l in labels]
+            
             # if the text contains the label
-            if any([s in sec["text"] for s in labels]):
+            if any([bool(re.search(l, " "+sec["text"]+" ")) 
+                    for l in lab_rgx]):
                 
                 # process with spacy and check if sentenced
                 doc = nlp(sec["text"])
@@ -43,7 +50,8 @@ def refine_texts(label_df, raw_texts, sent_spans, nlp,
                     for i, sent in enumerate(doc.sents):
                         
                         # pick sentence with the label
-                        if any([s in sent.text for s in labels]):
+                        if any([bool(re.search(l, " "+sent.text+" ")) 
+                                for l in lab_rgx]):
                             
                             # get sentence indices surrounding label
                             for span in sent_spans:
@@ -59,11 +67,14 @@ def refine_texts(label_df, raw_texts, sent_spans, nlp,
                                                     "max_idx"])
                     
                     # compile texts from selected sentences
-                    train_texts = sent_df.apply(
-                        lambda x: __compile_from_sent_list__(
-                            start=x["min_idx"], 
-                            end=x["max_idx"],
-                            sent_list=all_sents), axis=1).tolist()
+                    if sent_df.shape[0] > 0:
+                        train_texts = sent_df.apply(
+                            lambda x: __compile_from_sent_list__(
+                                start=x["min_idx"], 
+                                end=x["max_idx"],
+                                sent_list=all_sents), axis=1).tolist()
+                    else:
+                        train_texts = []
                     
                     # add to train data for current id
                     train_data += train_texts

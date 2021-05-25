@@ -34,9 +34,9 @@ class Coleridger:
             if self.sample_ids is None:
                 self.random_text_ids(n)         
         elif id_list == "full":
-            self.sample_ids  = self.text_ids       
+            self.sample_ids = self.text_ids       
         else:
-            self.sample_ids  = id_list
+            self.sample_ids = id_list
             
         # load each text file
         text_dict = {}
@@ -54,4 +54,8 @@ class Coleridger:
         sample_id = list(np.random.choice(id_list, 1))[0]
         
         return sample_id, self.text_dict[sample_id]
+    
+    def reset_id_selection(self):
+        self.sample_ids = None
+        self.text_dict = None
        
