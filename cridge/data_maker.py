@@ -5,8 +5,9 @@ import re
 import pandas as pd
 from tqdm import tqdm
 
-def __compile_from_sent_list__(start, end, sent_list):
-    return " ".join([s.text for s in sent_list[start:end]])
+def __compile_from_sent_list__(start, end, span, sent_list):
+    return {"span": span, 
+            "text": " ".join([s.text for s in sent_list[start:end]])}
 
 def refine_texts(label_df, raw_texts, sent_spans, nlp,
                  procd_ids=None):
@@ -57,15 +58,17 @@ def refine_texts(label_df, raw_texts, sent_spans, nlp,
                                 # get sentence indices surrounding label
                                 for span in sent_spans:
                                     sent_tups.append((i, 
-                                                    max((i - span[0]), 0), 
-                                                    min((i + span[1] + 1), 
-                                                        len(all_sents))))
+                                                      max((i - span[0]), 0), 
+                                                      min((i + span[1] + 1), 
+                                                          len(all_sents)),
+                                                      span))
                                     
                         # compile sentence index dataframe
                         sent_df = pd.DataFrame(sent_tups, 
-                                            columns=["sent_idx", 
+                                               columns=["sent_idx", 
                                                         "min_idx", 
-                                                        "max_idx"])
+                                                        "max_idx",
+                                                        "span"])
                         
                         # compile texts from selected sentences
                         if sent_df.shape[0] > 0:
@@ -73,6 +76,7 @@ def refine_texts(label_df, raw_texts, sent_spans, nlp,
                                 lambda x: __compile_from_sent_list__(
                                     start=x["min_idx"], 
                                     end=x["max_idx"],
+                                    span=x["span"],
                                     sent_list=all_sents), axis=1).tolist()
                         else:
                             train_texts = []

@@ -160,14 +160,16 @@ class NER_tuner(Coleridger):
             labels = label_df.query("Id == @pub_id")["dataset_label"].tolist()
             pub_train = []
             
-            # iterate through each section
+            # iterate through each excerpt
             for sec in pub_text:
-                if any([s in sec for s in labels]):
+                
+                # proceed if excerpt contains the label
+                if any([s in sec['text'] for s in labels]):
                     
                     # process text and add dataset entities first
-                    doc = self.nlp(sec)
+                    doc = self.nlp(sec['text'])
                     ent_dict = {"entities": []}
-                    label_locs = __unique_spans__(labels, sec)
+                    label_locs = __unique_spans__(labels, sec['text'])
                     for ll in label_locs:
                         ent_dict["entities"].append((ll[0], ll[1], 
                                                      "DATASET"))
@@ -183,7 +185,8 @@ class NER_tuner(Coleridger):
                             ent_dict["entities"].append((e.start_char, 
                                                          e.end_char, 
                                                          e.label_))
-                    pub_train.append((doc.text, ent_dict))
+                    pub_train.append({"span": sec["span"],
+                                      "example": (doc.text, ent_dict)})
                     
             tune_data_new[pub_id] = pub_train
         
